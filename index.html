@@ -1,29 +1,136 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <!-- Required meta tags -->
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+<head>
+  <meta charset="utf-8">
+  <title>Dino Game</title>
+  <script src="https://unpkg.com/kaboom/dist/kaboom.js"></script>
+</head>
+<body>
+<script>
+kaboom({
+  background: [255, 255, 255],
+})
 
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
-        <link href="style.css" rel="stylesheet" type="text/css" />
-        <style>
-            /* CSS */
-            
-        </style>
-        
-        <title>Title</title>
-    </head>
-    <body>
-        <!-- HTML -->
-        
-        
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-        <!-- <script src="script.js"></script> -->
-        <script>
-            // JS
-            
-            
-        </script>
-    </body>
+setGravity(1750)
+
+// sprites
+loadSprite("dino", "sprite-folder/sprite1.png")
+loadSprite("cactus", "sprite-folder/sprite2.png")
+
+scene("game", () => {
+
+  var speed = 380 // starting speed
+  var score = 0
+
+  const groundY = height() - 50
+
+  // load high score
+  var highScore = Number(localStorage.getItem("highScore") || 0)
+
+  // ground
+  add([
+    rect(width(), 50),
+    pos(0, groundY),
+    area(),
+    body({ isStatic: true }),
+    color(0, 0, 0),
+  ])
+
+  // dino
+  const player = add([
+    sprite("dino"),
+    pos(80, groundY),
+    area(),
+    body(),
+    scale(0.9),
+    anchor("botleft"),
+  ])
+
+  // jump
+  onKeyPress("space", () => {
+    if (player.isGrounded()) {
+      player.jump(520)
+    }
+  })
+
+  // cactus
+  function spawnCactus() {
+
+add([
+  sprite("cactus"),
+  pos(width(), groundY + 10),
+  area({
+    shape: new Rect(vec2(0, 0), 45, 45), // centers at 0,0 and have a area of 45 x 45
+  }),
+  move(LEFT, speed),
+  "enemy",
+  scale(rand(0.6, 0.8)),
+  anchor("botleft"),
+])
+    wait(rand(0.9, 1.2), spawnCactus) // randomly spawns a cactus
+
+  }
+
+  spawnCactus()
+
+  // collision --> update high score + restart
+  player.onCollide("enemy", () => {
+
+    var finalScore = Math.floor(score)
+
+    if (finalScore > highScore) {
+      highScore = finalScore
+      localStorage.setItem("highScore", highScore) // if the highScore was beaten it gets replaced by the new score.
+    }
+
+    go("gameover", finalScore)
+  })
+
+  // score + high score text
+  const scoreText = add([
+    text("0"),
+    pos(width() - 120, 5),
+    color(0, 0, 0),
+  ])
+
+  const highScoreText = add([
+    text("Highest: " + highScore),
+    pos(width() - 120, 40),
+    color(0, 0, 0),
+  ])
+
+  onUpdate(() => {
+    score += dt() * 10
+
+    scoreText.text = Math.floor(score)
+    highScoreText.text = "" + highScore
+
+    speed = 380 + score * 0.8 // speed inceases over time
+  })
+
+})
+
+scene("gameover", (score) => {
+
+  add([
+    text(
+      "GAME OVER\n" +
+      score +
+      "\nHighest: " + localStorage.getItem("highScore") +
+      "\n\nPRESS SPACE TO RESTART"
+    ),
+    pos(width()/2, height()/2),
+    anchor("center"),
+    color(0, 0, 0),
+  ])
+
+  onKeyPress("space", () => {
+    go("game")
+  })
+
+})
+
+go("game")
+</script>
+</body>
 </html>

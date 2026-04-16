@@ -1,7 +1,7 @@
 # Plan
 
-## Tool: 
-## Product: 
+## Tool: Kaboom.js
+## Product: Dino Chrome (somewhat similar)
 
 ---
 
@@ -9,7 +9,55 @@
 
 #### MVP
 
-- [ ] Task (deadline: X)
+- [ ] Task
+Core Setup
+
+ Project initialization (deadline: Day 1)
+
+ Set up HTML + JS structure
+
+- Configure gravity + ground
+
+- Player (Dino)
+
+- Add dino sprite (deadline: Day 3)
+
+- Running animation
+
+- Jump mechanic
+
+- Prevent double jump
+
+- Collision with ground
+
+- Obstacles
+
+- Add cactus obstacle (deadline: Day 5)
+
+- Random spawn intervals
+
+- Collision detection (trigger game over)
+
+- Increasing movement speed over time
+
+Game Loop
+
+- Score system (deadline: Day 7)
+
+- Score increases over time
+
+- Display score
+
+- Store high score (localStorage)
+
+- Game states (deadline: Day 10)
+
+- Start screen
+
+- Game over screen
+
+- Restart button / key press
+(deadline: X)
   - [ ] Subtask (deadline: X)
 
 #### Beyond MVP
@@ -49,7 +97,7 @@
 
 <!-- DO NOT USE THIS YET
 
-#### Peer Feedback 
+#### Peer Feedback
 
 | Name | Glows | Grows |
 | -------- | ------- | ------- |
@@ -60,3 +108,4 @@
 |  |  |  |
 
 -->
+

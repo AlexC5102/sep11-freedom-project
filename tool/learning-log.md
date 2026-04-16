@@ -1,19 +1,23 @@
 # Tool Learning Log
 
-## Tool: **X**
+## Tool: **Kaboom.js**
 
-## Project: **X**
+## Project: **A Game similar to Dino Chrome**
 
 ---
 
-### X/X/XX:
-* Text
+### 3/29/26:
+* Detect collision to end game
+* Use onCollide() to trigger restart
+* Call go("game") to restart
+* Resets player and obstacles
+* Lets player play again quickly
 
 ### X/X/XX:
 * Text
 
 
-<!-- 
+<!--
 * Links you used today (websites, videos, etc)
 * Things you tried, progress you made, etc
 * Challenges, a-ha moments, etc
