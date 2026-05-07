@@ -2,91 +2,193 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Dino Game</title>
-  <script src="https://unpkg.com/kaboom/dist/kaboom.js"></script>
+  <title>Dino Chrome</title>
+
+  <script src="https://unpkg.com/kaboom@3000.0.1/dist/kaboom.js"></script>
 </head>
+
 <body>
+
 <script>
+
 kaboom({
-  background: [255, 255, 255],
+  background: [245, 245, 245],
 })
 
-setGravity(1750)
+function clamp(v, min, max) {
+  return Math.max(min, Math.min(max, v))
+}
 
-// sprites
+setGravity(1100)
+
+// SPRITES
 loadSprite("dino", "sprite-folder/sprite1.png")
 loadSprite("cactus", "sprite-folder/sprite2.png")
+loadSprite("asteroids", "sprite-folder/asteroid.png")
+loadSprite("rocketLauncher", "sprite-folder/rocket-launcher.png")
+loadSprite("rocket", "sprite-folder/rocket.png")
 
 scene("game", () => {
 
-  var speed = 380 // starting speed
   var score = 0
+  var speed = 380
 
   const groundY = height() - 50
-
-  // load high score
   var highScore = Number(localStorage.getItem("highScore") || 0)
 
-  // ground
+  var canShoot = true
+  const fireRate = 700
+
   add([
     rect(width(), 50),
     pos(0, groundY),
     area(),
     body({ isStatic: true }),
-    color(0, 0, 0),
+    color(30, 30, 30),
   ])
 
-  // dino
   const player = add([
     sprite("dino"),
     pos(80, groundY),
-    area(),
+    anchor("bot"),
     body(),
+    area(),
     scale(0.9),
-    anchor("botleft"),
   ])
 
-  // jump
-  onKeyPress("space", () => {
-    if (player.isGrounded()) {
-      player.jump(520)
-    }
+  const launcher = add([
+    sprite("rocketLauncher"),
+    pos(player.pos.x + 28, player.pos.y - 45),
+    anchor("center"),
+    scale(0.4),
+  ])
+
+  launcher.onUpdate(() => {
+    launcher.pos.x = player.pos.x + 28
+    launcher.pos.y = player.pos.y - 45
+
+    const dir = mousePos().sub(launcher.pos)
+    launcher.angle = dir.angle()
   })
 
-  // cactus
-  function spawnCactus() {
+  onKeyPress("space", () => {
+    if (player.isGrounded()) player.jump(520)
+  })
 
-add([
-  sprite("cactus"),
-  pos(width(), groundY + 10),
-  area({
-    shape: new Rect(vec2(0, 0), 45, 45), // centers at 0,0 and have a area of 45 x 45
-  }),
-  move(LEFT, speed),
-  "enemy",
-  scale(rand(0.6, 0.8)),
-  anchor("botleft"),
-])
-    wait(rand(0.9, 1.2), spawnCactus) // randomly spawns a cactus
+  function shootRocket() {
 
+    if (!canShoot) return
+
+    canShoot = false
+    wait(fireRate / 1000, () => canShoot = true)
+
+    const startPos = vec2(launcher.pos.x + 25, launcher.pos.y)
+    const dir = mousePos().sub(startPos).unit()
+
+    const rocketObj = add([
+      sprite("rocket"),
+      pos(startPos),
+      anchor("center"),
+      area(),
+      scale(0.25),
+      rotate(dir.angle()),
+      z(20),
+      "rocket",
+
+      {
+        speed: 700,
+        dir,
+        update() {
+          this.pos = this.pos.add(this.dir.scale(this.speed * dt()))
+        }
+      }
+    ])
+
+    rocketObj.onCollide("asteroid", (a) => {
+      if (!a.exists()) return
+      destroy(a)
+      destroy(rocketObj)
+    })
   }
 
-  spawnCactus()
+  onKeyPress("r", shootRocket)
 
-  // collision --> update high score + restart
+  function spawnCactusPattern() {
+
+    const pattern = choose([[1],[1,1]])
+    const startX = width() + 100
+
+    for (var i = 0; i < pattern.length; i++) {
+      if (pattern[i] === 1) {
+
+        add([
+          sprite("cactus"),
+          pos(startX + i * 45, groundY),
+          anchor("bot"),
+          area(),
+          move(LEFT, speed),
+          "enemy",
+          scale(rand(0.55, 0.6)),
+        ])
+
+      }
+    }
+
+    wait(rand(1.0, 1.8), spawnCactusPattern)
+  }
+
+  function spawnAsteroidBelt() {
+
+    const difficulty = clamp(score / 500, 0, 1)
+    const count = randi(2, 4)
+
+    for (var i = 0; i < count; i++) {
+
+      wait(i * 0.35, () => {
+
+        add([
+          sprite("asteroids"),
+          pos(rand(0, width()), -60),
+          anchor("center"),
+          area(),
+
+          "asteroid",
+          "enemy", // ✅ FIX: now kills player
+
+          {
+            fall: lerp(240, 520, difficulty),
+            drift: rand(-60, 60),
+
+            update() {
+              this.pos.y += this.fall * dt()
+              this.pos.x += this.drift * dt()
+              this.angle += dt() * 120
+            }
+          }
+        ])
+
+      })
+
+    }
+
+    wait(rand(2.0, 3.5), spawnAsteroidBelt)
+  }
+
+  spawnCactusPattern()
+  spawnAsteroidBelt()
+
   player.onCollide("enemy", () => {
 
-    var finalScore = Math.floor(score)
+    const finalScore = Math.floor(score)
 
     if (finalScore > highScore) {
       highScore = finalScore
-      localStorage.setItem("highScore", highScore) // if the highScore was beaten it gets replaced by the new score.
+      localStorage.setItem("highScore", highScore)
     }
 
     go("gameover", finalScore)
   })
 
-  // score + high score text
   const scoreText = add([
     text("0"),
     pos(width() - 120, 5),
@@ -94,18 +196,17 @@ add([
   ])
 
   const highScoreText = add([
-    text("Highest: " + highScore),
+    text("Best: " + highScore),
     pos(width() - 120, 40),
     color(0, 0, 0),
   ])
 
   onUpdate(() => {
     score += dt() * 10
+    speed = 380 + score * 0.55
 
     scoreText.text = Math.floor(score)
-    highScoreText.text = "" + highScore
-
-    speed = 380 + score * 0.8 // speed inceases over time
+    highScoreText.text = "Best: " + highScore
   })
 
 })
@@ -114,9 +215,10 @@ scene("gameover", (score) => {
 
   add([
     text(
-      "GAME OVER\n" +
+      "SURVIVAL FAILED\n\n" +
       score +
-      "\nHighest: " + localStorage.getItem("highScore") +
+      "\n\nBest: " +
+      localStorage.getItem("highScore") +
       "\n\nPRESS SPACE TO RESTART"
     ),
     pos(width()/2, height()/2),
@@ -124,13 +226,12 @@ scene("gameover", (score) => {
     color(0, 0, 0),
   ])
 
-  onKeyPress("space", () => {
-    go("game")
-  })
-
+  onKeyPress("space", () => go("game"))
 })
 
 go("game")
+
 </script>
+
 </body>
 </html>
