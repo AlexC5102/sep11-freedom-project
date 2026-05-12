@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Dino Chrome</title>
+  <title>Rocket Dino</title>
 
   <script src="https://unpkg.com/kaboom@3000.0.1/dist/kaboom.js"></script>
 </head>
@@ -20,6 +20,7 @@ function clamp(v, min, max) {
 }
 
 setGravity(1100)
+// MUSIC
 
 // SPRITES
 loadSprite("dino", "sprite-folder/sprite1.png")
@@ -31,7 +32,7 @@ loadSprite("rocket", "sprite-folder/rocket.png")
 scene("game", () => {
 
   var score = 0
-  var speed = 380
+  var speed = 600
 
   const groundY = height() - 50
   var highScore = Number(localStorage.getItem("highScore") || 0)
@@ -80,7 +81,7 @@ scene("game", () => {
     if (!canShoot) return
 
     canShoot = false
-    wait(fireRate / 1000, () => canShoot = true)
+    wait(fireRate / 875, () => canShoot = true)
 
     const startPos = vec2(launcher.pos.x + 25, launcher.pos.y)
     const dir = mousePos().sub(startPos).unit()
@@ -134,13 +135,13 @@ scene("game", () => {
       }
     }
 
-    wait(rand(1.0, 1.8), spawnCactusPattern)
+    wait(rand(1.0, 1.5), spawnCactusPattern)
   }
 
   function spawnAsteroidBelt() {
 
     const difficulty = clamp(score / 500, 0, 1)
-    const count = randi(2, 4)
+    const count = randi(3, 6)
 
     for (var i = 0; i < count; i++) {
 
@@ -153,7 +154,7 @@ scene("game", () => {
           area(),
 
           "asteroid",
-          "enemy", // ✅ FIX: now kills player
+          "enemy",
 
           {
             fall: lerp(240, 520, difficulty),
@@ -203,10 +204,10 @@ scene("game", () => {
 
   onUpdate(() => {
     score += dt() * 10
-    speed = 380 + score * 0.55
+    speed = 600 + score * 0.55
 
     scoreText.text = Math.floor(score)
-    highScoreText.text = "Best: " + highScore
+    highScoreText.text = highScore
   })
 
 })

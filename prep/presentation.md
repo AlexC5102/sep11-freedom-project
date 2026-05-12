@@ -1,16 +1,16 @@
 # Presentation Plan
 
 ## Hook
-* 
+* Are you tired of being a fossil? Does the thought of a giant space rock ruin your afternoon? BUT WAIT, THERE’S MORE!
 
 ## Product
-* 
+*
 
 ## Process
-* 
+*
 
 ## Conclusion
-* 
+*
 
 <!-- EXAMPLE
 
