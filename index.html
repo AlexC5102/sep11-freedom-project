@@ -12,17 +12,16 @@
 <script>
 
 kaboom({
-  background: [245, 245, 245],
+  background: [245, 245, 245], // sets background color
 })
 
-function clamp(v, min, max) {
+function clamp(v, min, max) { // keeps value between min and max
   return Math.max(min, Math.min(max, v))
 }
 
-setGravity(1100)
-// MUSIC
+setGravity(1100) // adds gravity to game world
 
-// SPRITES
+// load sprites (game images)
 loadSprite("dino", "sprite-folder/sprite1.png")
 loadSprite("cactus", "sprite-folder/sprite2.png")
 loadSprite("asteroids", "sprite-folder/asteroid.png")
@@ -31,93 +30,79 @@ loadSprite("rocket", "sprite-folder/rocket.png")
 
 scene("game", () => {
 
-  var score = 0
-  var speed = 600
+  var score = 0 // tracks score
+  var speed = 600 // player speed
 
-  const groundY = height() - 50
-  var highScore = Number(localStorage.getItem("highScore") || 0)
+  const groundY = height() - 50 // ground position
+  var highScore = Number(localStorage.getItem("highScore") || 0) // saved best score
 
-  var canShoot = true
-  const fireRate = 700
+  var canShoot = true // controls shooting cooldown
+  const fireRate = 700 // delay between shots
 
   add([
-    rect(width(), 50),
-    pos(0, groundY),
-    area(),
-    body({ isStatic: true }),
-    color(30, 30, 30),
+    rect(width(), 50), pos(0, groundY), area(), body({ isStatic: true }), color(30, 30, 30), // ground
   ])
 
   const player = add([
-    sprite("dino"),
-    pos(80, groundY),
-    anchor("bot"),
-    body(),
-    area(),
-    scale(0.9),
+    sprite("dino"), pos(80, groundY), anchor("bot"), body(), area(), scale(0.9), // player
   ])
 
   const launcher = add([
     sprite("rocketLauncher"),
     pos(player.pos.x + 28, player.pos.y - 45),
     anchor("center"),
-    scale(0.4),
+    scale(0.4), // rocket launcher
   ])
 
   launcher.onUpdate(() => {
-    launcher.pos.x = player.pos.x + 28
-    launcher.pos.y = player.pos.y - 45
+    launcher.pos.x = player.pos.x + 28 // follow player x
+    launcher.pos.y = player.pos.y - 45 // follow player y
 
-    const dir = mousePos().sub(launcher.pos)
-    launcher.angle = dir.angle()
+    const dir = mousePos().sub(launcher.pos) // direction to mouse
+    launcher.angle = dir.angle() // rotate toward mouse
   })
 
   onKeyPress("space", () => {
-    if (player.isGrounded()) player.jump(520)
+    if (player.isGrounded()) player.jump(520) // jump only if on ground
   })
 
   function shootRocket() {
 
-    if (!canShoot) return
+    if (!canShoot) return // stop if cooling down
 
-    canShoot = false
-    wait(fireRate / 875, () => canShoot = true)
+    canShoot = false // start cooldown
+    wait(fireRate / 875, () => canShoot = true) // reset cooldown
 
-    const startPos = vec2(launcher.pos.x + 25, launcher.pos.y)
-    const dir = mousePos().sub(startPos).unit()
+    const startPos = vec2(launcher.pos.x + 25, launcher.pos.y) // rocket start position
+    const dir = mousePos().sub(startPos).unit() // direction to mouse
 
     const rocketObj = add([
-      sprite("rocket"),
-      pos(startPos),
-      anchor("center"),
-      area(),
-      scale(0.25),
-      rotate(dir.angle()),
-      z(20),
-      "rocket",
+      sprite("rocket"), pos(startPos), anchor("center"), area(),
+      scale(0.25), rotate(dir.angle()), z(20), "rocket", // rocket setup
 
       {
-        speed: 700,
-        dir,
+        speed: 700, // rocket speed
+        dir, // direction
+
         update() {
-          this.pos = this.pos.add(this.dir.scale(this.speed * dt()))
+          this.pos = this.pos.add(this.dir.scale(this.speed * dt())) // move rocket
         }
       }
     ])
 
     rocketObj.onCollide("asteroid", (a) => {
-      if (!a.exists()) return
-      destroy(a)
-      destroy(rocketObj)
+      if (!a.exists()) return // check asteroid
+      destroy(a) // remove asteroid
+      destroy(rocketObj) // remove rocket
     })
   }
 
-  onKeyPress("r", shootRocket)
+  onKeyPress("r", shootRocket) // shoot rocket on R key
 
   function spawnCactusPattern() {
 
-    const pattern = choose([[1],[1,1]])
-    const startX = width() + 100
+    const pattern = choose([[1],[1,1]]) // random cactus pattern
+    const startX = width() + 100 // spawn off screen
 
     for (var i = 0; i < pattern.length; i++) {
       if (pattern[i] === 1) {
@@ -127,21 +112,21 @@ scene("game", () => {
           pos(startX + i * 45, groundY),
           anchor("bot"),
           area(),
-          move(LEFT, speed),
+          move(LEFT, speed), // move left
           "enemy",
-          scale(rand(0.55, 0.6)),
+          scale(rand(0.55, 0.6)), // random size
         ])
 
       }
     }
 
-    wait(rand(1.0, 1.5), spawnCactusPattern)
+    wait(rand(1.0, 1.5), spawnCactusPattern) // repeat spawning
   }
 
   function spawnAsteroidBelt() {
 
-    const difficulty = clamp(score / 500, 0, 1)
-    const count = randi(3, 6)
+    const difficulty = clamp(score / 500, 0, 1) // increases difficulty
+    const count = randi(3, 6) // number of asteroids
 
     for (var i = 0; i < count; i++) {
 
@@ -152,18 +137,16 @@ scene("game", () => {
           pos(rand(0, width()), -60),
           anchor("center"),
           area(),
-
-          "asteroid",
-          "enemy",
+          "asteroid", "enemy",
 
           {
-            fall: lerp(240, 520, difficulty),
-            drift: rand(-60, 60),
+            fall: lerp(240, 520, difficulty), // fall speed
+            drift: rand(-60, 60), // side movement
 
             update() {
-              this.pos.y += this.fall * dt()
-              this.pos.x += this.drift * dt()
-              this.angle += dt() * 120
+              this.pos.y += this.fall * dt() // move down
+              this.pos.x += this.drift * dt() // move sideways
+              this.angle += dt() * 120 // rotate
             }
           }
         ])
@@ -172,42 +155,43 @@ scene("game", () => {
 
     }
 
-    wait(rand(2.0, 3.5), spawnAsteroidBelt)
+    wait(rand(2.0, 3.5), spawnAsteroidBelt) // repeat wave
   }
 
-  spawnCactusPattern()
-  spawnAsteroidBelt()
+  spawnCactusPattern() // start cactuses
+  spawnAsteroidBelt() // start asteroids
 
   player.onCollide("enemy", () => {
 
-    const finalScore = Math.floor(score)
+    const finalScore = Math.floor(score) // final score
 
     if (finalScore > highScore) {
-      highScore = finalScore
-      localStorage.setItem("highScore", highScore)
+      highScore = finalScore // update high score
+      localStorage.setItem("highScore", highScore) // save score
     }
 
-    go("gameover", finalScore)
+    go("gameover", finalScore) // go to game over
   })
 
   const scoreText = add([
     text("0"),
     pos(width() - 120, 5),
-    color(0, 0, 0),
+    color(0, 0, 0), // score display
   ])
 
   const highScoreText = add([
     text("Best: " + highScore),
     pos(width() - 120, 40),
-    color(0, 0, 0),
+    color(0, 0, 0), // high score display
   ])
 
   onUpdate(() => {
-    score += dt() * 10
-    speed = 600 + score * 0.55
 
-    scoreText.text = Math.floor(score)
-    highScoreText.text = highScore
+    score += dt() * 10 // increase score over time
+    speed = 600 + score * 0.55 // increase difficulty
+
+    scoreText.text = Math.floor(score) // update score text
+    highScoreText.text = highScore // update best score
   })
 
 })
@@ -224,13 +208,13 @@ scene("gameover", (score) => {
     ),
     pos(width()/2, height()/2),
     anchor("center"),
-    color(0, 0, 0),
+    color(0, 0, 0), // game over text
   ])
 
-  onKeyPress("space", () => go("game"))
+  onKeyPress("space", () => go("game")) // restart game
 })
 
-go("game")
+go("game") // start game
 
 </script>
 
