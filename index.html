@@ -38,13 +38,22 @@ scene("game", () => {
 
   var canShoot = true // controls shooting cooldown
   const fireRate = 700 // delay between shots
-
+  // ground
   add([
-    rect(width(), 50), pos(0, groundY), area(), body({ isStatic: true }), color(30, 30, 30), // ground
+    rect(width(), 50),
+    pos(0, groundY),
+    area(),
+    body({ isStatic: true }),
+    color(30, 30, 30),
   ])
-
+  // player
   const player = add([
-    sprite("dino"), pos(80, groundY), anchor("bot"), body(), area(), scale(0.9), // player
+    sprite("dino"),
+    pos(80, groundY),
+    anchor("bot"),
+    body(),
+    area(),
+    scale(0.9),
   ])
 
   const launcher = add([
